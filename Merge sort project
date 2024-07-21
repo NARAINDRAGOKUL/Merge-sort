@@ -1,0 +1,119 @@
+public class MergeSortTake0 {
+    public static void mergeSort(int[] array) {
+        if (array.length > 1) {
+            int mid = array.length / 2;
+            int[] left = new int[mid];
+            int[] right = new int[array.length - mid];
+            System.arraycopy(array, 0, left, 0, mid);
+            System.arraycopy(array, mid, right, 0, array.length - mid);
+            mergeSort(left);
+            mergeSort(right);
+            merge(array, left, right);
+        }
+    }
+
+    private static void merge(int[] result, int[] left, int[] right) {
+        int i = 0, j = 0, k = 0;
+        while (i < left.length && j < right.length) {
+            if (left[i] < right[j]) {
+                result[k++] = left[i++];
+            } else {
+                result[k++] = right[j++];
+            }
+        }
+        while (i < left.length) {
+            result[k++] = left[i++];
+        }
+        while (j < right.length) {
+            result[k++] = right[j++];
+        }
+    }
+}
+public class MergeSortTake4 {
+    private static final int THRESHOLD = 32; // Test different values for optimal performance
+
+    public static void mergeSort(int[] array) {
+        mergeSort(array, 0, array.length - 1);
+    }
+
+    private static void mergeSort(int[] array, int left, int right) {
+        if (right - left + 1 <= THRESHOLD) {
+            insertionSort(array, left, right);
+        } else {
+            int mid = (left + right) / 2;
+            mergeSort(array, left, mid);
+            mergeSort(array, mid + 1, right);
+            merge(array, left, mid, right);
+        }
+    }
+
+    private static void merge(int[] array, int left, int mid, int right) {
+        int[] temp = new int[right - left + 1];
+        int i = left, j = mid + 1, k = 0;
+        while (i <= mid && j <= right) {
+            if (array[i] <= array[j]) {
+                temp[k++] = array[i++];
+            } else {
+                temp[k++] = array[j++];
+            }
+        }
+        while (i <= mid) {
+            temp[k++] = array[i++];
+        }
+        while (j <= right) {
+            temp[k++] = array[j++];
+        }
+        System.arraycopy(temp, 0, array, left, temp.length);
+    }
+
+    private static void insertionSort(int[] array, int left, int right) {
+        for (int i = left + 1; i <= right; i++) {
+            int key = array[i];
+            int j = i - 1;
+            while (j >= left && array[j] > key) {
+                array[j + 1] = array[j];
+                j--;
+            }
+            array[j + 1] = key;
+        }
+    }
+}
+import java.util.Random;
+
+public class Main {
+    public static void main(String[] args) {
+        int[] sizes = {16 * 1024 * 1024, 32 * 1024 * 1024, 64 * 1024 * 1024, 128 * 1024 * 1024}; // until out of memory
+
+        for (int size : sizes) {
+            long totalTime0 = 0;
+            long totalTime4 = 0;
+            for (int trial = 0; trial < 50; trial++) {
+                int[] array = generateRandomArray(size);
+                
+                // Measure time for MergeSortTake0
+                int[] copy0 = array.clone();
+                long startTime = System.nanoTime();
+                MergeSortTake0.mergeSort(copy0);
+                totalTime0 += System.nanoTime() - startTime;
+                
+                // Measure time for MergeSortTake4
+                int[] copy4 = array.clone();
+                startTime = System.nanoTime();
+                MergeSortTake4.mergeSort(copy4);
+                totalTime4 += System.nanoTime() - startTime;
+            }
+            System.out.println("Average time for size " + size + ":");
+            System.out.println("MergeSortTake0: " + (totalTime0 / 50) / 1_000_000 + " ms");
+            System.out.println("MergeSortTake4: " + (totalTime4 / 50) / 1_000_000 + " ms");
+        }
+    }
+
+    private static int[] generateRandomArray(int size) {
+        Random random = new Random();
+        int[] array = new int[size];
+        for (int i = 0; i < size; i++) {
+            array[i] = random.nextInt();
+        }
+        return array;
+    }
+}
